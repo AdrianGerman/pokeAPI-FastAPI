@@ -15,3 +15,10 @@ def message():
 @app.get('/pokemon', tags=['pokemon'])
 def get_pokemon():
     return pokemon
+
+@app.get('/pokemon/{id}', tags=['pokemon'])
+def get_pokemon_id(id: int):
+    for item in pokemon:
+        if item['id'] == id:
+            return item
+    return []
