@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Body
 from fastapi.responses import HTMLResponse
 from pokemon_list import pokemons
 
@@ -29,4 +29,17 @@ def get_pokemon_id(id: int):
 def get_pokemon_by_type(type: str):    
     return list(filter(lambda pokemon: type in pokemon['type'], pokemons))
 
+
+@app.post('/pokemons', tags=['pokemon'])
+def create_pokemon(id: int = Body(), name: str = Body(), type: list = Body(...), description: str = Body(), category: str = Body(), height: float = Body(), weight: float = Body()):
+    pokemons.append({
+        'id': id,
+        'name': name,
+        'type': type,
+        'description': description,
+        'category': category,
+        'height': height,
+        'weight': weight
+    })
+    return pokemons
 
