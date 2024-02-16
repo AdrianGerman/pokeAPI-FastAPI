@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-from pokemon_list import pokemon
+from pokemon_list import pokemons
+
+from typing import List, Optional
 
 app = FastAPI()
 
@@ -12,13 +14,21 @@ app.title = 'PokeAPI from FastAPI'
 def message():
     return HTMLResponse('<h1>Hello Germán</h1>')
 
-@app.get('/pokemon', tags=['pokemon'])
+@app.get('/pokemons', tags=['pokemon'])
 def get_pokemon():
-    return pokemon
+    return pokemons
 
-@app.get('/pokemon/{id}', tags=['pokemon'])
+@app.get('/pokemons/{id}', tags=['pokemon'])
 def get_pokemon_id(id: int):
-    for item in pokemon:
+    for item in pokemons:
         if item['id'] == id:
             return item
     return []
+
+@app.get('/pokemons/by_type/{pokemon_type}', tags=['pokemon'])
+def get_pokemon_by_type(type: str):
+    pokemons_by_type = []
+    for pokemon in pokemons:
+        if type in pokemon['type']:
+            pokemons_by_type.append(pokemon)
+    return pokemons_by_type
