@@ -25,10 +25,8 @@ def get_pokemon_id(id: int):
             return item
     return []
 
-@app.get('/pokemons/by_type/{pokemon_type}', tags=['pokemon'])
-def get_pokemon_by_type(type: str):
-    pokemons_by_type = []
-    for pokemon in pokemons:
-        if type in pokemon['type']:
-            pokemons_by_type.append(pokemon)
-    return pokemons_by_type
+@app.get('/pokemons/by_type/{type}', tags=['pokemon'])
+def get_pokemon_by_type(type: str):    
+    return list(filter(lambda pokemon: type in pokemon['type'], pokemons))
+
+
