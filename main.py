@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Body
 from fastapi.responses import HTMLResponse
 from pokemon_list import pokemons
+from pydantic import BaseModel
+from typing import Optional
 
 from typing import List, Optional
 
@@ -8,6 +10,15 @@ app = FastAPI()
 
 app.title = 'PokeAPI from FastAPI'
 # app.version = '0.0.1'
+
+class Pokemon(BaseModel):
+    id: Optional[int] = None
+    name: str
+    type: list
+    description: str
+    category: str
+    height: float
+    weight: float
 
 
 @app.get('/', tags=['home'])
@@ -31,28 +42,20 @@ def get_pokemon_by_type(type: str):
 
 
 @app.post('/pokemons', tags=['pokemon'])
-def create_pokemon(id: int = Body(), name: str = Body(), type: list = Body(...), description: str = Body(), category: str = Body(), height: float = Body(), weight: float = Body()):
-    pokemons.append({
-        'id': id,
-        'name': name,
-        'type': type,
-        'description': description,
-        'category': category,
-        'height': height,
-        'weight': weight
-    })
+def create_pokemon(pokemon: Pokemon):
+    pokemons.append(pokemon)
     return pokemons
 
 @app.put('/pokemons/{id}', tags=['pokemon'])
-def update_pokemon(id: int, name: str = Body(), type: list = Body(...), description: str = Body(), category: str = Body(), height: float = Body(), weight: float = Body()):
+def update_pokemon(id: int, pokemon: Pokemon):
     for item in pokemons:
         if item['id'] == id:
-            item['name'] = name,
-            item['type'] = type,
-            item['description'] = description,
-            item['category'] = category,
-            item['height'] = height,
-            item['weight'] = weight,
+            item['name'] = pokemon.name
+            item['type'] = pokemon.type
+            item['description'] = pokemon.description
+            item['category'] = pokemon.category
+            item['height'] = pokemon.height
+            item['weight'] = pokemon.weight
             return pokemons
             
             
