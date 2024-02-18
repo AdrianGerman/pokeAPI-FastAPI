@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Body, Path, Query
+from fastapi import FastAPI, Body, Path, Query, status
 from fastapi.responses import HTMLResponse, JSONResponse
 from pokemon_list import pokemons
 from pydantic import BaseModel, Field
@@ -47,8 +47,8 @@ def message():
 
 
 @app.get('/pokemons', tags=['pokemon'], response_model=List[Pokemon])
-def get_pokemon() -> List[Pokemon]:
-    return JSONResponse(content=pokemons)
+def get_pokemon() -> JSONResponse:
+    return JSONResponse(content=pokemons, status_code=status.HTTP_200_OK)
 
 
 @app.get('/pokemons/{id}', tags=['pokemon'], response_model=Pokemon)
@@ -56,7 +56,7 @@ def get_pokemon_id(id: int = Path(ge=0, le=2000)) -> Pokemon:
     for item in pokemons:
         if item['id'] == id:
             return JSONResponse(content=item)
-    return JSONResponse(content=[])
+    return JSONResponse(status_code=404, content=[])
 
 
 @app.get('/pokemons/by_type/{type}', tags=['pokemon'], response_model=List[Pokemon])
@@ -65,13 +65,13 @@ def get_pokemon_by_type(type: str) -> List[Pokemon]:
     return JSONResponse(content=data)
 
 
-@app.post('/pokemons', tags=['pokemon'], response_model=dict)
+@app.post('/pokemons', tags=['pokemon'], response_model=dict, status_code=201)
 def create_pokemon(pokemon: Pokemon) -> dict:
     pokemons.append(pokemon.model_dump())
-    return JSONResponse(content={'message': 'Se ha registrado el pokémon'})
+    return JSONResponse(status_code=201, content={'message': 'Se ha registrado el pokémon'})
 
 
-@app.put('/pokemons/{id}', tags=['pokemon'], response_model=dict)
+@app.put('/pokemons/{id}', tags=['pokemon'], response_model=dict, status_code=200)
 def update_pokemon(id: int, pokemon: Pokemon) -> dict:
     for item in pokemons:
         if item['id'] == id:
@@ -81,12 +81,12 @@ def update_pokemon(id: int, pokemon: Pokemon) -> dict:
             item['category'] = pokemon.category
             item['height'] = pokemon.height
             item['weight'] = pokemon.weight
-            return JSONResponse(content={'message': 'Se ha modificado el pokémon'})
+            return JSONResponse(status_code=200, content={'message': 'Se ha modificado el pokémon'})
 
 
-@app.delete('/pokemons/{id}', tags=['pokemon'], response_model=dict)
+@app.delete('/pokemons/{id}', tags=['pokemon'], response_model=dict, status_code=200)
 def delete_pokemon(id: int) -> dict:
     for item in pokemons:
         if item['id'] == id:
             pokemons.remove(item)
-            return JSONResponse(content={'message': 'Se ha eliminado el pokémon'})
+            return JSONResponse(status_code=200, content={'message': 'Se ha eliminado el pokémon'})
