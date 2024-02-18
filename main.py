@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from pokemon_list import pokemons
 from pydantic import BaseModel, Field
 from typing import Optional, List
+from jwt_manager import create_token
 
 from typing import List, Optional
 
@@ -10,6 +11,11 @@ app = FastAPI()
 
 app.title = 'PokeAPI from FastAPI'
 app.version = '0.0.1'
+
+
+class User(BaseModel):
+    email: str
+    password: str
 
 
 class Pokemon(BaseModel):
@@ -44,6 +50,11 @@ class Pokemon(BaseModel):
 @app.get('/', tags=['home'])
 def message():
     return HTMLResponse('<h1>Hello Germán</h1>')
+
+
+@app.post('/login', tags=['auth'])
+def login(user: User):
+    return user
 
 
 @app.get('/pokemons', tags=['pokemon'], response_model=List[Pokemon])
