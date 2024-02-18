@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Body
+from fastapi import FastAPI, Body, Path, Query
 from fastapi.responses import HTMLResponse
 from pokemon_list import pokemons
 from pydantic import BaseModel, Field
@@ -52,7 +52,7 @@ def get_pokemon():
 
 
 @app.get('/pokemons/{id}', tags=['pokemon'])
-def get_pokemon_id(id: int):
+def get_pokemon_id(id: int = Path(ge=1, le=2000)):
     for item in pokemons:
         if item['id'] == id:
             return item
