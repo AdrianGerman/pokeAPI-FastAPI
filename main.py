@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Body, Path, Query
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from pokemon_list import pokemons
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 
 from typing import List, Optional
 
@@ -46,32 +46,33 @@ def message():
     return HTMLResponse('<h1>Hello Germán</h1>')
 
 
-@app.get('/pokemons', tags=['pokemon'])
-def get_pokemon():
-    return pokemons
+@app.get('/pokemons', tags=['pokemon'], response_model=List[Pokemon])
+def get_pokemon() -> List[Pokemon]:
+    return JSONResponse(content=pokemons)
 
 
-@app.get('/pokemons/{id}', tags=['pokemon'])
-def get_pokemon_id(id: int = Path(ge=1, le=2000)):
+@app.get('/pokemons/{id}', tags=['pokemon'], response_model=Pokemon)
+def get_pokemon_id(id: int = Path(ge=0, le=2000)) -> Pokemon:
     for item in pokemons:
         if item['id'] == id:
-            return item
-    return []
+            return JSONResponse(content=item)
+    return JSONResponse(content=[])
 
 
-@app.get('/pokemons/by_type/{type}', tags=['pokemon'])
-def get_pokemon_by_type(type: str):
-    return list(filter(lambda pokemon: type in pokemon['type'], pokemons))
+@app.get('/pokemons/by_type/{type}', tags=['pokemon'], response_model=List[Pokemon])
+def get_pokemon_by_type(type: str) -> List[Pokemon]:
+    data = list(filter(lambda pokemon: type in pokemon['type'], pokemons))
+    return JSONResponse(content=data)
 
 
-@app.post('/pokemons', tags=['pokemon'])
-def create_pokemon(pokemon: Pokemon):
-    pokemons.append(pokemon)
-    return pokemons
+@app.post('/pokemons', tags=['pokemon'], response_model=dict)
+def create_pokemon(pokemon: Pokemon) -> dict:
+    pokemons.append(pokemon.model_dump())
+    return JSONResponse(content={'message': 'Se ha registrado el pokémon'})
 
 
-@app.put('/pokemons/{id}', tags=['pokemon'])
-def update_pokemon(id: int, pokemon: Pokemon):
+@app.put('/pokemons/{id}', tags=['pokemon'], response_model=dict)
+def update_pokemon(id: int, pokemon: Pokemon) -> dict:
     for item in pokemons:
         if item['id'] == id:
             item['name'] = pokemon.name
@@ -80,12 +81,12 @@ def update_pokemon(id: int, pokemon: Pokemon):
             item['category'] = pokemon.category
             item['height'] = pokemon.height
             item['weight'] = pokemon.weight
-            return pokemons
+            return JSONResponse(content={'message': 'Se ha modificado el pokémon'})
 
 
-@app.delete('/pokemons/{id}', tags=['pokemon'])
-def delete_pokemon(id: int):
+@app.delete('/pokemons/{id}', tags=['pokemon'], response_model=dict)
+def delete_pokemon(id: int) -> dict:
     for item in pokemons:
         if item['id'] == id:
             pokemons.remove(item)
-            return pokemons
+            return JSONResponse(content={'message': 'Se ha eliminado el pokémon'})
