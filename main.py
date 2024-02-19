@@ -5,7 +5,8 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 from jwt_manager import create_token, validate_token
 from fastapi.security import HTTPBearer
-
+from config.database import Session, engine, Base
+from models.pokemon import Pokemon
 
 from typing import List, Optional
 
@@ -13,6 +14,8 @@ app = FastAPI()
 
 app.title = 'PokeAPI from FastAPI'
 app.version = '0.0.1'
+
+Base.metadata.create_all(bind=engine)
 
 
 class JWTBearer(HTTPBearer):
