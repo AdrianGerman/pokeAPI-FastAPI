@@ -1,9 +1,11 @@
-from fastapi import FastAPI, Body, Path, Query, status
+from fastapi import FastAPI, Body, Path, Query, status, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 from pokemon_list import pokemons
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from jwt_manager import create_token
+from jwt_manager import create_token, validate_token
+from fastapi.security import HTTPBearer
+
 
 from typing import List, Optional
 
@@ -11,6 +13,15 @@ app = FastAPI()
 
 app.title = 'PokeAPI from FastAPI'
 app.version = '0.0.1'
+
+
+class JWTBearer(HTTPBearer):
+    async def __call__(self, request: Request):
+        auth = await super().__call__(request)
+        data = validate_token(auth.credentials)
+        if data['email'] != 'admin@gmail.com':
+            raise HTTPException(
+                status_code=403, detail='Las credenciales son invalidas')
 
 
 class User(BaseModel):
@@ -59,7 +70,7 @@ def login(user: User):
         return JSONResponse(status_code=200, content=token)
 
 
-@app.get('/pokemons', tags=['pokemon'], response_model=List[Pokemon])
+@app.get('/pokemons', tags=['pokemon'], response_model=List[Pokemon], dependencies=[Depends(JWTBearer())])
 def get_pokemon() -> JSONResponse:
     return JSONResponse(content=pokemons, status_code=status.HTTP_200_OK)
 
