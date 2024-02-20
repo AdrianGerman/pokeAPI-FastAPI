@@ -90,10 +90,12 @@ def get_pokemon_id(id: int = Path(ge=0, le=2000)) -> Pokemon:
     return JSONResponse(status_code=200, content=jsonable_encoder(result))
 
 
-@app.get('/pokemons/by_type/{type}', tags=['pokemon'], response_model=List[Pokemon])
-def get_pokemon_by_type(type: str) -> List[Pokemon]:
-    data = list(filter(lambda pokemon: type in pokemon['type'], pokemons))
-    return JSONResponse(content=data)
+@app.get('/pokemons/by_type/{type}', tags=['pokemon'])
+def get_pokemon_by_type(type: str):
+    db = Session()
+    # type_list = type.split(', ')
+    result = db.query(PokemonModel).filter(PokemonModel.type == type).all()
+    return JSONResponse(status_code=200, content=jsonable_encoder(result))
 
 
 @app.post('/pokemons', tags=['pokemon'], response_model=dict, status_code=201)
