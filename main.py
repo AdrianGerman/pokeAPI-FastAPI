@@ -5,9 +5,9 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 from jwt_manager import create_token, validate_token
 from fastapi.security import HTTPBearer
-from config.database import Session, engine, Base
-from models.pokemon import Pokemon
 from typing import List, Optional
+from config.database import Session, engine, Base
+from models.pokemon import Pokemon as PokemonModel
 
 app = FastAPI()
 
@@ -35,7 +35,7 @@ class User(BaseModel):
 class Pokemon(BaseModel):
     id: Optional[int] = None
     name: str = Field(default="Pokémon", max_length=15)
-    type: list = Field(default=["Normal", "Fuego", "Agua"])
+    type: str = Field(default="Normal")
     description: str = Field(default="Un pokémon salvaje")
     category: str = Field(default="Animal")
     height: float = Field(default=1.2)
@@ -94,7 +94,11 @@ def get_pokemon_by_type(type: str) -> List[Pokemon]:
 
 @app.post('/pokemons', tags=['pokemon'], response_model=dict, status_code=201)
 def create_pokemon(pokemon: Pokemon) -> dict:
-    pokemons.append(pokemon.model_dump())
+    db = Session()
+    new_pokemon = PokemonModel(**pokemon.model_dump())
+    db.add(new_pokemon)
+    db.commit()
+    # pokemons.append(pokemon.model_dump())
     return JSONResponse(status_code=201, content={'message': 'Se ha registrado el pokémon'})
 
 
