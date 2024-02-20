@@ -110,20 +110,28 @@ def create_pokemon(pokemon: Pokemon) -> dict:
 
 @app.put('/pokemons/{id}', tags=['pokemon'], response_model=dict, status_code=200)
 def update_pokemon(id: int, pokemon: Pokemon) -> dict:
-    for item in pokemons:
-        if item['id'] == id:
-            item['name'] = pokemon.name
-            item['type'] = pokemon.type
-            item['description'] = pokemon.description
-            item['category'] = pokemon.category
-            item['height'] = pokemon.height
-            item['weight'] = pokemon.weight
-            return JSONResponse(status_code=200, content={'message': 'Se ha modificado el pokémon'})
+    db = Session()
+    result = db.query(PokemonModel).filter(PokemonModel.id == id).first()
+    if not result:
+        return JSONResponse(status_code=404, content={'message': 'No encontrado'})
+    result.name = pokemon.name
+    result.type = pokemon.type
+    result.description = pokemon.description
+    result.category = pokemon.category
+    result.height = pokemon.height
+    result.weight = pokemon.weight
+
+    db.commit()
+    return JSONResponse(status_code=200, content={'message': 'Se ha modificado el pokémon'})
 
 
 @app.delete('/pokemons/{id}', tags=['pokemon'], response_model=dict, status_code=200)
 def delete_pokemon(id: int) -> dict:
-    for item in pokemons:
-        if item['id'] == id:
-            pokemons.remove(item)
-            return JSONResponse(status_code=200, content={'message': 'Se ha eliminado el pokémon'})
+    db = Session()
+    result = db.query(PokemonModel).filter(PokemonModel.id == id).first()
+    if not result:
+        return JSONResponse(status_code=404, content={'message': 'No encontrado'})
+
+    db.delete(result)
+    db.commit()
+    return JSONResponse(status_code=200, content={'message': 'Se ha eliminado el pokémon'})
