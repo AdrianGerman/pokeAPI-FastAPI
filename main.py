@@ -8,6 +8,7 @@ from fastapi.security import HTTPBearer
 from typing import List, Optional
 from config.database import Session, engine, Base
 from models.pokemon import Pokemon as PokemonModel
+from fastapi.encoders import jsonable_encoder
 
 app = FastAPI()
 
@@ -75,15 +76,18 @@ def login(user: User):
 
 @app.get('/pokemons', tags=['pokemon'], response_model=List[Pokemon], dependencies=[Depends(JWTBearer())])
 def get_pokemon() -> JSONResponse:
-    return JSONResponse(content=pokemons, status_code=status.HTTP_200_OK)
+    db = Session()
+    result = db.query(PokemonModel).all()
+    return JSONResponse(content=jsonable_encoder(result), status_code=status.HTTP_200_OK)
 
 
 @app.get('/pokemons/{id}', tags=['pokemon'], response_model=Pokemon)
 def get_pokemon_id(id: int = Path(ge=0, le=2000)) -> Pokemon:
-    for item in pokemons:
-        if item['id'] == id:
-            return JSONResponse(content=item)
-    return JSONResponse(status_code=404, content=[])
+    db = Session()
+    result = db.query(PokemonModel).filter(PokemonModel.id == id).first()
+    if not result:
+        return JSONResponse(status_code=404, content={'message': 'No encontrado'})
+    return JSONResponse(status_code=200, content=jsonable_encoder(result))
 
 
 @app.get('/pokemons/by_type/{type}', tags=['pokemon'], response_model=List[Pokemon])
