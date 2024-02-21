@@ -1,13 +1,13 @@
-from fastapi import Path, status, Depends, Query
-from typing import List
-from pydantic import BaseModel, Field
+from fastapi import APIRouter
+from fastapi import Path, status, Depends
+from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from middlewares.jwt_bearer import JWTBearer
-from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from models.pokemon import Pokemon as PokemonModel
 from config.database import Session
-from fastapi import APIRouter
+from services.pokemon import PokemonService
 
 pokemon_router = APIRouter()
 
@@ -44,14 +44,14 @@ class Pokemon(BaseModel):
 @pokemon_router.get('/pokemons', tags=['pokemon'], response_model=List[Pokemon], dependencies=[Depends(JWTBearer())])
 def get_pokemon() -> JSONResponse:
     db = Session()
-    result = db.query(PokemonModel).all()
+    result = PokemonService(db).get_pokemons()
     return JSONResponse(content=jsonable_encoder(result), status_code=status.HTTP_200_OK)
 
 
 @pokemon_router.get('/pokemons/{id}', tags=['pokemon'], response_model=Pokemon)
 def get_pokemon_id(id: int = Path(ge=0, le=2000)) -> Pokemon:
     db = Session()
-    result = db.query(PokemonModel).filter(PokemonModel.id == id).first()
+    result = PokemonService(db).get_pokemon(id)
     if not result:
         return JSONResponse(status_code=404, content={'message': 'No encontrado'})
     return JSONResponse(status_code=200, content=jsonable_encoder(result))
